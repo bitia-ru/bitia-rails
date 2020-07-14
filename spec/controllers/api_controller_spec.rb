@@ -163,6 +163,8 @@ RSpec.describe DogsController, type: :controller do
         allow(controller.class).to receive(:controller_path).and_return('one/foo/baz/bar/xxxs')
       end
 
+      after { controller.class.controller_prefix.clear }
+
       context 'without controller_prefix' do
         it 'should return correct value' do
           expect(controller.class.purable_model_chain).to eq %w[one foo baz bar xxxs]

@@ -8,3 +8,8 @@ gem 'responders'
 gem 'pry'
 
 gem 'jbuilder'
+
+group :development do
+  gem 'rubocop'
+end
+

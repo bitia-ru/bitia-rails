@@ -1,5 +1,5 @@
 Style/FrozenStringLiteralComment: { Enabled: false }
-Metrics/LineLength:
+Layout/LineLength:
   Max: 100
 Metrics/MethodLength: { Enabled: false }
 Metrics/ModuleLength: { Enabled: false }
