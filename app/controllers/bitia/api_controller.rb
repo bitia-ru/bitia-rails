@@ -50,18 +50,30 @@ class Bitia::ApiController < ActionController::Base
     render
   end
 
-  helper_method :pure_filter
-
   def pure_filter(param)
     return unless params[param].present?
 
     instance_variable_get("@#{resources_name}").where!(param => params[param])
   end
 
+  helper_method :pure_filter
+
+  def purable_model
+    self.class.send(:purable_model)
+  end
+
+  helper_method :purable_model
+
+  def purable_model_chain
+    self.class.send(:purable_model_chain)
+  end
+
+  helper_method :purable_model
+
   private
 
   def purable_initialize_metavars
-    @resource = self.class.purable_model.name.underscore.to_sym
+    @resource = purable_model.name.underscore.to_sym
     @metadata ||= {}
     nil
   end
@@ -100,7 +112,7 @@ class Bitia::ApiController < ActionController::Base
   end
 
   def purable_relation
-    self.class.purable_model_chain.inject(nil) do |m, pm|
+    purable_model_chain.inject(nil) do |m, pm|
       if m.nil?
         pm.singularize.classify.constantize
       elsif params.include?("#{m.to_s.underscore}_id")
@@ -111,7 +123,7 @@ class Bitia::ApiController < ActionController::Base
 
   def pure_create_or_update
     if resources.present?
-      self.class.purable_model.transaction { resources.each(&:save!) }
+      purable_model.transaction { resources.each(&:save!) }
     else
       resource.save!
     end
@@ -134,13 +146,19 @@ class Bitia::ApiController < ActionController::Base
     controller_path.split('/')
   end
 
+  private_class_method :purable_model_chain
+
   def self.purable_model
     purable_model_chain.last.singularize.classify.constantize
   end
 
+  private_class_method :purable_model
+
   def self.inherited(klass)
-    resource_accessor_name = klass.purable_model.name.underscore.to_sym
+    resource_accessor_name = klass.send(:purable_model).name.underscore.to_sym
     klass.define_method(resource_accessor_name) { resource }
     klass.helper_method resource_accessor_name
   end
+
+  private_class_method :inherited
 end

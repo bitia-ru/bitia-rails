@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rails', '~> 5.2.4', '>= 5.2.4.3'
   spec.add_dependency 'responders'
 
-  spec.add_development_dependency 'sqlite3'
-  spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'factory_bot_rails'
+  spec.add_development_dependency 'rspec-rails'
+  spec.add_development_dependency 'sqlite3'
 end
