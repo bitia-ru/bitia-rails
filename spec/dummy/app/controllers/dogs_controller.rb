@@ -6,7 +6,7 @@ class DogsController < Bitia::ApiController
   private
 
   def dog_params
-    if params.has_key?(:dogs)
+    if params.key?(:dogs)
       params.require(:dogs).map(&method(:single_dog_params))
     else
       single_dog_params(params.require(:dog))
