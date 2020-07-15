@@ -143,7 +143,7 @@ RSpec.describe DogsController, type: :controller do
     it 'should call resource' do
       expect(controller).to receive(:resource).once
 
-      controller.dog
+      controller.send(:dog)
     end
   end
 
@@ -154,7 +154,7 @@ RSpec.describe DogsController, type: :controller do
       end
 
       it do
-        expect(controller.purable_model_chain).to eq ['foos']
+        expect(controller.send(:purable_model_chain)).to eq ['foos']
       end
     end
 
@@ -167,7 +167,7 @@ RSpec.describe DogsController, type: :controller do
 
       context 'without controller_prefix' do
         it 'should return correct value' do
-          expect(controller.purable_model_chain).to eq %w[one foo baz bar xxxs]
+          expect(controller.send(:purable_model_chain)).to eq %w[one foo baz bar xxxs]
         end
       end
 
@@ -178,7 +178,7 @@ RSpec.describe DogsController, type: :controller do
         end
 
         it 'should return correct value' do
-          expect(controller.purable_model_chain).to eq %w[bar xxxs]
+          expect(controller.send(:purable_model_chain)).to eq %w[bar xxxs]
         end
       end
 
@@ -189,7 +189,7 @@ RSpec.describe DogsController, type: :controller do
         end
 
         it 'should raise an exception' do
-          expect { controller.purable_model_chain }.to raise_exception StandardError
+          expect { controller.send(:purable_model_chain) }.to raise_exception StandardError
         end
       end
     end
