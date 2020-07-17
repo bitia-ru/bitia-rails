@@ -45,23 +45,43 @@ RSpec.describe DogsController, type: :controller do
   end
 
   describe ':show' do
-    before do
-      get :show, params: { id: dog2.id }
-    end
+    context 'resource exists' do
+      before do
+        get :show, params: params
+      end
 
-    it 'should success' do
-      expect(response).to have_http_status(:success)
-    end
+      let(:params) { { id: dog2.id } }
 
-    it 'should return entity' do
-      expect(response.body).to eq(
-        JSON.dump(
-          {
-            metadata: {},
-            payload: render_dog(dog2)
-          }
+      it 'should success' do
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'should return entity' do
+        expect(response.body).to eq(
+          JSON.dump(
+            {
+              metadata: {},
+              payload: render_dog(dog2)
+            }
+          )
         )
-      )
+      end
+    end
+
+    context 'resource does not exists' do
+      render_views false
+
+      let(:params) do
+        dog = create(:dog)
+        dog_id = dog.id
+        dog.destroy!
+
+        { id: dog_id }
+      end
+
+      it 'should not raise' do
+        expect { get :show, params: params }.not_to raise_exception
+      end
     end
   end
 

@@ -76,7 +76,7 @@ module Bitia
         id = params[:id].present? ? params[:id] : purable_param_id
 
         instance_variable_set(
-          "@#{resource_name}", id ? purable_relation.find(id) : purable_relation.new
+          "@#{resource_name}", id ? purable_relation.find_by(id: id) : purable_relation.new
         )
       elsif purable_resource_params.is_a?(Array)
         resources = purable_resource_params.map do |params|
