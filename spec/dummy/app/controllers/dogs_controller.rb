@@ -1,7 +1,5 @@
-class DogsController < Bitia::ApiController
-  def authorize(_object)
-    nil
-  end
+class DogsController < ActionController::Base
+  include Bitia::Purable
 
   private
 
