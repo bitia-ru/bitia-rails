@@ -1,4 +1,8 @@
+require: rubocop-performance
 Style/FrozenStringLiteralComment: { Enabled: false }
+Performance/RedundantMerge:
+  Exclude:
+    - 'app/views/**/**/*.json.jbuilder'
 Layout/LineLength:
   Max: 100
 Metrics/MethodLength: { Enabled: false }

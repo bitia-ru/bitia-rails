@@ -14,4 +14,5 @@ gem 'jbuilder'
 
 group :development do
   gem 'rubocop'
+  gem 'rubocop-performance'
 end

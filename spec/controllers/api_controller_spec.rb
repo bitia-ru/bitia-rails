@@ -34,10 +34,12 @@ RSpec.describe DogsController, type: :controller do
       expect(response.body).to eq(
         JSON.dump(
           {
+            entities: {
+              dogs: Dog.all.map(&method(:render_dog))
+            },
             metadata: {
               all: Dog.all.count
-            },
-            payload: Dog.all.map(&method(:render_dog))
+            }
           }
         )
       )
@@ -47,6 +49,7 @@ RSpec.describe DogsController, type: :controller do
   describe ':show' do
     context 'resource exists' do
       before do
+        allow(controller).to receive(:dog_params).and_return([])
         get :show, params: params
       end
 
@@ -60,8 +63,10 @@ RSpec.describe DogsController, type: :controller do
         expect(response.body).to eq(
           JSON.dump(
             {
-              metadata: {},
-              payload: render_dog(dog2)
+              entities: {
+                dog: render_dog(dog2)
+              },
+              metadata: {}
             }
           )
         )
@@ -69,6 +74,9 @@ RSpec.describe DogsController, type: :controller do
     end
 
     context 'resource does not exists' do
+      before do
+        allow(controller).to receive(:dog_params).and_return([])
+      end
       render_views false
 
       let(:params) do
@@ -99,8 +107,10 @@ RSpec.describe DogsController, type: :controller do
         expect(response.body).to eq(
           JSON.dump(
             {
-              metadata: {},
-              payload: { name: 'Тузик' }
+              entities: {
+                dog: { name: 'Тузик' }
+              },
+              metadata: {}
             }
           )
         )
