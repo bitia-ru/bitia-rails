@@ -49,7 +49,7 @@ RSpec.describe DogsController, type: :controller do
   describe ':show' do
     context 'resource exists' do
       before do
-        allow(controller).to receive(:dog_params).and_return([])
+        allow(controller).to receive(:dog_params).and_return({})
         get :show, params: params
       end
 
@@ -75,7 +75,7 @@ RSpec.describe DogsController, type: :controller do
 
     context 'resource does not exists' do
       before do
-        allow(controller).to receive(:dog_params).and_return([])
+        allow(controller).to receive(:dog_params).and_return({})
       end
       render_views false
 
@@ -119,11 +119,65 @@ RSpec.describe DogsController, type: :controller do
   end
 
   describe ':destroy' do
-    # TODO
+    context 'when single entity id passed' do
+      before do
+        allow(controller).to receive(:dog_params).and_return({})
+        delete :destroy, params: params
+      end
+
+      let(:params) { { id: dog2.id } }
+
+      it 'should success' do
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'should return id and _destroy: true' do
+        expect(response.body).to eq(
+          JSON.dump(
+            {
+              entities: {
+                dog: {
+                  id: dog2.id,
+                  _destroy: true
+                }
+              },
+              metadata: {}
+            }
+          )
+        )
+      end
+
+      it 'should fail to find deleted entity' do
+        expect { Dog.find(dog2.id) }.to raise_error(ActiveRecord::RecordNotFound)
+      end
+    end
   end
 
   describe ':update' do
-    # TODO
+    before do
+      allow(controller).to receive(:dog_params).and_return(params[:dog])
+      patch :update, params: params
+    end
+
+    let(:new_name) { "#{dog2.name}_updated" }
+    let(:params) { { id: dog2.id, dog: { name: new_name } } }
+
+    it 'should success' do
+      expect(response).to have_http_status(:success)
+    end
+
+    it 'should return updated entity' do
+      expect(response.body).to eq(
+        JSON.dump(
+          {
+            entities: {
+              dog: render_dog(dog2).merge!({ name: new_name })
+            },
+            metadata: {}
+          }
+        )
+      )
+    end
   end
 
   describe 'pure_filter' do
