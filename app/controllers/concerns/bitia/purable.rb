@@ -73,7 +73,13 @@ module Bitia
 
       def render_template
         @entities = (
-          params[:action] == 'index' || purable_resource_params.is_a?(Array) ? resources : resource
+          if params[:action] == 'index'
+            resources
+          elsif resource_params_present? && purable_resource_params.is_a?(Array)
+            resources
+          else
+            resource
+          end
         )
 
         render template: "bitia/api/#{params[:action]}"
@@ -88,7 +94,7 @@ module Bitia
       def purable_prepare_resources
         if params[:action] == 'index'
           instance_variable_set("@#{resources_name}", purable_relation.all)
-        elsif purable_resource_params.is_a?(Array) && params[:action] != 'show'
+        elsif resource_params_present? && purable_resource_params.is_a?(Array)
           resources = purable_resource_params.map do |params|
             if params[:id].present? && params[:id] != 'self'
               purable_relation.find(params[:id]).tap { |r| r.assign_attributes(params) }
@@ -169,6 +175,10 @@ module Bitia
 
       def purable_model_chain
         purable_model_names_chain.map { |p| p.singularize.classify.constantize }
+      end
+
+      def resource_params_present?
+        [resource_name, resources_name].any? { |name| params.include? name.to_sym }
       end
 
       # rubocop:disable Style/MissingRespondToMissing

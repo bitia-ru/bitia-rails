@@ -49,7 +49,6 @@ RSpec.describe DogsController, type: :controller do
   describe ':show' do
     context 'resource exists' do
       before do
-        allow(controller).to receive(:dog_params).and_return({})
         get :show, params: params
       end
 
@@ -74,9 +73,6 @@ RSpec.describe DogsController, type: :controller do
     end
 
     context 'resource does not exists' do
-      before do
-        allow(controller).to receive(:dog_params).and_return({})
-      end
       render_views false
 
       let(:params) do
@@ -121,7 +117,6 @@ RSpec.describe DogsController, type: :controller do
   describe ':destroy' do
     context 'when single entity id passed' do
       before do
-        allow(controller).to receive(:dog_params).and_return({})
         delete :destroy, params: params
       end
 
@@ -155,7 +150,6 @@ RSpec.describe DogsController, type: :controller do
 
   describe ':update' do
     before do
-      allow(controller).to receive(:dog_params).and_return(params[:dog])
       patch :update, params: params
     end
 
