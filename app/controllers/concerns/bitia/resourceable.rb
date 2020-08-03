@@ -15,6 +15,12 @@ module Bitia
         @resource.to_s.pluralize.to_sym
       end
 
+      helper_method :resource_id_name
+
+      def resource_id_name
+        :id
+      end
+
       helper_method :resource
 
       def resource
@@ -41,7 +47,7 @@ module Bitia
         self.class.controller_prefix
       end
 
-      class_attribute :controller_prefix, default: Array.new
+      class_attribute :controller_prefix, default: []
     end
 
     module ClassMethods

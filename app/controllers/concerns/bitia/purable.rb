@@ -24,33 +24,33 @@ module Bitia
         end
         @metadata[:all] = all unless @metadata[:all]
 
-        render template: 'bitia/api/index'
+        render_template
       end
 
       def new
         check_resource_prepared
 
-        render template: 'bitia/api/new'
+        render_template
       end
 
       def show
         check_resource_prepared
 
-        render template: 'bitia/api/show'
+        render_template
       end
 
       def create
         check_resource_prepared
 
         pure_create_or_update
-        render template: 'bitia/api/create'
+        render_template
       end
 
       def update
         check_resource_prepared
 
         pure_create_or_update
-        render template: 'bitia/api/update'
+        render_template
       end
 
       def destroy
@@ -58,7 +58,7 @@ module Bitia
 
         resource.destroy!
 
-        render template: 'bitia/api/destroy'
+        render_template
       end
 
       def pure_filter(param)
@@ -71,6 +71,20 @@ module Bitia
 
       private
 
+      def render_template
+        @entities = (
+          if params[:action] == 'index'
+            resources
+          elsif resource_params_present? && purable_resource_params.is_a?(Array)
+            resources
+          else
+            resource
+          end
+        )
+
+        render template: "bitia/api/#{params[:action]}"
+      end
+
       def purable_initialize_metavars
         @resource = purable_model.name.underscore.to_sym
         @metadata ||= {}
@@ -80,13 +94,7 @@ module Bitia
       def purable_prepare_resources
         if params[:action] == 'index'
           instance_variable_set("@#{resources_name}", purable_relation.all)
-        elsif params[:action] == 'show'
-          id = params[:id].present? ? params[:id] : purable_param_id
-
-          instance_variable_set(
-            "@#{resource_name}", id ? purable_relation.find(id) : purable_relation.new
-          )
-        elsif purable_resource_params.is_a?(Array)
+        elsif resource_params_present? && purable_resource_params.is_a?(Array)
           resources = purable_resource_params.map do |params|
             if params[:id].present? && params[:id] != 'self'
               purable_relation.find(params[:id]).tap { |r| r.assign_attributes(params) }
@@ -96,16 +104,30 @@ module Bitia
           end
 
           instance_variable_set("@#{resources_name}", resources)
-        else
-          resource = purable_relation.new(purable_resource_params)
+        elsif %w[create update].include? params[:action]
+          id = params.dig(resource_id_name)
+
+          if id
+            resource = purable_relation.find_by(resource_id_name => id)
+            resource.assign_attributes(purable_resource_params)
+          else
+            resource = purable_relation.new(purable_resource_params)
+          end
           instance_variable_set("@#{resource_name}", resource)
+        else
+          id = params[resource_id_name].present? ? params[resource_id_name] : purable_param_id
+
+          instance_variable_set(
+            "@#{resource_name}",
+            id ? purable_relation.find_by(resource_id_name => id) : purable_relation.new
+          )
         end
       rescue ActiveRecord::RecordNotFound => e
         self._prepare_resources_exception = e
       end
 
       def purable_param_id
-        purable_resource_params[:id]
+        purable_resource_params[resource_id_name]
       rescue StandardError
         nil
       end
@@ -115,7 +137,9 @@ module Bitia
           if m.nil?
             pm.singularize.classify.constantize
           elsif params.include?("#{m.to_s.underscore}_id")
-            m.find(params["#{m.to_s.underscore}_id"]).send(pm.to_sym) # TODO: uncovered
+            m.find(params["#{m.to_s.underscore}_id"]).send(pm.to_sym)
+          elsif params.include?("#{m.to_s.underscore}_slug")
+            m.find_by(slug: params["#{m.to_s.underscore}_slug"]).send(pm.to_sym) # TODO: uncovered
           end
         end
       end
@@ -153,6 +177,10 @@ module Bitia
         purable_model_names_chain.map { |p| p.singularize.classify.constantize }
       end
 
+      def resource_params_present?
+        [resource_name, resources_name].any? { |name| params.include? name.to_sym }
+      end
+
       # rubocop:disable Style/MissingRespondToMissing
       def method_missing(method_name)
         resource_accessor_name = purable_model.name.underscore.to_sym
@@ -165,9 +193,9 @@ module Bitia
 
       def check_resource_prepared
         if _prepare_resources_exception.present? and
-          self.class._prepare_resources_fallback.present? and
-          resource.nil? and
-          resources.nil?
+           self.class._prepare_resources_fallback.present? and
+           resource.nil? and
+           resources.nil?
           raise _prepare_resources_exception
         end
       end
